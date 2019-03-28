@@ -4,6 +4,9 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 import pandas as pd
 import os
 import pickle as pkl
+import nltk
+from nltk.cluster import KMeansClusterer
+from sklearn.neural_network import MLPClassifier
 
 ps = PorterStemmer()
 
@@ -19,7 +22,7 @@ def streamming(corpus):
     for d in corpus:
         yield [ps.stem(w) for w in d]
 
-def main(force_train=False):
+def main(force_train=False, force_kmeans=False):
     link_u_imbd = 'datasets/imdb-unlabeled.txt'
     link_train = 'datasets/train.txt'
     link_test = 'datasets/test.txt'
@@ -48,6 +51,46 @@ def main(force_train=False):
 	else:
 		model = gensim.models.Word2Vec.load(w2v.model)
 		x_train = pkl.load(open("x_train.t", "rb"))
+
+
+	X = model[model.wv.vocab]
+	kcluster = None
+	if force_kmeans:
+		NUM_CLUSTERS = 2500
+		kcluster = KMeansClusterer(NUM_CLUSTERS,  distance=nltk.cluster.util.cosine_distance, repeats=25)
+		pkl.dump(kcluster, open("kcluster.t", "wb"))
+	else:
+		kcluster = pkl.load(open("kcluster.t", "rb"))		
+
+	assigned_clusters = kcluster.cluster(X, assign_clusters=True)
+	
+
+	X_train = []
+	Y_train = []
+	for x in range(len(x_train)):
+	    vetores = []
+	    for w in x_train[x]:
+	        if w not in model.wv.vocab:
+	            continue
+	        vetor = model.wv[w]
+	        vetores.append(np.array(vetor))
+	    vec_final = np.mean(vetores, axis=0)
+	    X_train.append(vec_final)
+	    Y_train.append(train_y[x])
+	
+
+	clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+	clf.fit(X_train, Y_train)
+
+	
+	
+
+
+
+
+
+
+
 
 
 
