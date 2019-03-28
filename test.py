@@ -29,6 +29,7 @@ def main(force_retrain=True, dim=100):
     model = gensim.models.Word2Vec.load("w2v.model")
 
     if force_retrain:
+        print("Force re-train")
         model.build_vocab(x_test, update=True)
         model.train(x_test, total_examples=len(x_test), epochs=10)
         model.save("w2v.rt.model")
@@ -50,6 +51,7 @@ def main(force_retrain=True, dim=100):
 
 
     clf = pkl.load(open("clf.model", "rb"))
+    print("Predict")
     Y_predict = clf.predict(X_test)
 
     score = accuracy_score(Y_test, Y_predict)

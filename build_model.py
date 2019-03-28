@@ -11,7 +11,7 @@ from utils import *
 from sklearn.model_selection import train_test_split
 
 if __name__ == '__main__':
-    main()
+    main(force_train=True, force_kmeans=True)
 
 
 def main(force_train=False, force_kmeans=False, force_mlp=True, dim=100):
@@ -20,7 +20,7 @@ def main(force_train=False, force_kmeans=False, force_mlp=True, dim=100):
     link_test = 'datasets/test.txt'
     df_train = pd.read_csv(link_train, encoding='utf-8')
     df_train['label'] = df_train['label'].replace({'neg':'0', 'pos':'1'})
-
+    print("Reading data")
     train_data = df_train['review'].tolist()
     train_y = df_train['label'].tolist()
 
@@ -28,12 +28,14 @@ def main(force_train=False, force_kmeans=False, force_mlp=True, dim=100):
     x_train = []
 
     if force_train or not os.path.isfile('w2v.model'):
+        print("Trainning")
         x_train = list(streamming(list(tokenize(train_data))))
         model = gensim.models.Word2Vec(x_train, size=dim, window=10, min_count=5)
         model.train(x_train, total_examples=len(x_train), epochs=10)
         model.save('w2v.model')
         pkl.dump(x_train, open("x_train.t", "wb"))
     else:
+        print("Loading model")
         model = gensim.models.Word2Vec.load("w2v.model")
         x_train = pkl.load(open("x_train.t", "rb"))
 
@@ -41,16 +43,19 @@ def main(force_train=False, force_kmeans=False, force_mlp=True, dim=100):
     X = model[model.wv.vocab]
     kcluster = None
     if force_kmeans:
+        print("Clustering")
         NUM_CLUSTERS = 2500
         kcluster = KMeansClusterer(NUM_CLUSTERS,  distance=nltk.cluster.util.cosine_distance, repeats=25)
         pkl.dump(kcluster, open("kcluster.t", "wb"))
     else:
+        print("Load Cluster")
         kcluster = pkl.load(open("kcluster.t", "rb"))       
 
     assigned_clusters = kcluster.cluster(X, assign_clusters=True)
     
 
     if force_mlp:
+        print("MLP step")
         X_train = []
         Y_train = []
         for x in range(len(x_train)):
