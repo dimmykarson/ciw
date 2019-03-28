@@ -10,9 +10,6 @@ from sklearn.neural_network import MLPClassifier
 from utils import *
 from sklearn.model_selection import train_test_split
 
-if __name__ == '__main__':
-    main(force_train=True, force_kmeans=True)
-
 
 def main(force_train=False, force_kmeans=False, force_mlp=True, dim=100):
     link_u_imbd = 'datasets/imdb-unlabeled.txt'
@@ -78,6 +75,8 @@ def main(force_train=False, force_kmeans=False, force_mlp=True, dim=100):
 
 
 
+if __name__ == '__main__':
+    main(force_train=True, force_kmeans=True)
 
 
 
